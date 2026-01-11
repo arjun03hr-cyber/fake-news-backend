@@ -5,17 +5,9 @@ import joblib
 import os
 from app.utils import clean_text
 
-# --------------------------------------------------
-# FastAPI App
-# --------------------------------------------------
-app = FastAPI(
-    title="Fake News Detection API",
-    version="0.1.0"
-)
+app = FastAPI(title="Fake News Detection API")
 
-# --------------------------------------------------
-# CORS (Safe for frontend + Render)
-# --------------------------------------------------
+# ---------------- CORS ----------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,36 +15,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --------------------------------------------------
-# Base directory (VERY IMPORTANT for Render)
-# --------------------------------------------------
+# -------- SAFE BASE DIRECTORY ----------
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 MODEL_PATH = os.path.join(BASE_DIR, "models", "model.pkl")
 VECTORIZER_PATH = os.path.join(BASE_DIR, "models", "vectorizer.pkl")
 
-# --------------------------------------------------
-# Load ML artifacts ONCE at startup
-# --------------------------------------------------
+# -------- LOAD ML ARTIFACTS ------------
 model = joblib.load(MODEL_PATH)
 vectorizer = joblib.load(VECTORIZER_PATH)
 
-# --------------------------------------------------
-# Request Schema
-# --------------------------------------------------
+# -------- REQUEST SCHEMA ---------------
 class NewsRequest(BaseModel):
     text: str
 
-# --------------------------------------------------
-# Health Check / Root Endpoint
-# --------------------------------------------------
+# -------- HEALTH CHECK -----------------
 @app.get("/")
 def root():
     return {"status": "Fake News Detection API running"}
 
-# --------------------------------------------------
-# Main Prediction Endpoint
-# --------------------------------------------------
+# -------- MAIN ENDPOINT ----------------
 @app.post("/analyze")
 def analyze_news(request: NewsRequest):
     cleaned_text = clean_text(request.text)
