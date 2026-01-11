@@ -5,9 +5,17 @@ import joblib
 import os
 from app.utils import clean_text
 
-app = FastAPI(title="Fake News Detection API")
+# --------------------------------------------------
+# FastAPI App
+# --------------------------------------------------
+app = FastAPI(
+    title="Fake News Detection API",
+    version="0.1.0"
+)
 
-# CORS (safe for frontend + Render)
+# --------------------------------------------------
+# CORS (Safe for frontend + Render)
+# --------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -15,21 +23,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ---- SAFE PATH HANDLING (CRITICAL) ----
+# --------------------------------------------------
+# Base directory (VERY IMPORTANT for Render)
+# --------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-model = joblib.load(os.path.join(BASE_DIR, "models", "model.pkl"))
-vectorizer = joblib.load(os.path.join(BASE_DIR, "models", "vectorizer.pkl"))
+MODEL_PATH = os.path.join(BASE_DIR, "models", "model.pkl")
+VECTORIZER_PATH = os.path.join(BASE_DIR, "models", "vectorizer.pkl")
 
+# --------------------------------------------------
+# Load ML artifacts ONCE at startup
+# --------------------------------------------------
+model = joblib.load(MODEL_PATH)
+vectorizer = joblib.load(VECTORIZER_PATH)
+
+# --------------------------------------------------
+# Request Schema
+# --------------------------------------------------
 class NewsRequest(BaseModel):
     text: str
 
-# ---- HEALTH CHECK ENDPOINT ----
+# --------------------------------------------------
+# Health Check / Root Endpoint
+# --------------------------------------------------
 @app.get("/")
 def root():
     return {"status": "Fake News Detection API running"}
 
-# ---- MAIN PREDICTION ENDPOINT ----
+# --------------------------------------------------
+# Main Prediction Endpoint
+# --------------------------------------------------
 @app.post("/analyze")
 def analyze_news(request: NewsRequest):
     cleaned_text = clean_text(request.text)
